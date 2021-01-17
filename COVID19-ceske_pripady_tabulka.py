@@ -20,6 +20,22 @@ data_prefix = '<!--BEGIN COVID19dataczbot area-->'
 data_suffix = '<!--END COVID19dataczbot area-->'
 target_article = 'Šablona:Data_pandemie_covidu-19/České_případy_tabulka'
 #target_article = 'Wikipedista:Camel1cz/Pískoviště'
+
+# data sources + tracking last updated
+data_sources = {
+    'sources': [
+        {
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv',
+            'updated': datetime.datetime(1970, 1, 1)
+        },
+        {
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv',
+            'updated': datetime.datetime(1970, 1, 1)
+        }
+    ],
+    'updated': False,
+    'filename': botname + '_C19tabulka.lastupdated'
+}
 table_header = '''|-
 ! rowspan="2" |Datum
 ! colspan="2" |Nakažení
@@ -41,17 +57,59 @@ table_header = '''|-
 !Nárůst!!Celkem
 !Nárůst!!Celkem'''
 
+def saveDataUpdated():
+    try:
+        f=open(data_sources['filename'], "w")
+        f.write(json.dumps(data_sources['sources'], default=str))
+        f.close()
+    except Exception as e:
+        print('Storing of state data failed')
+        print(e)
+        pass
+
+def loadDataUpdated():
+    # read last updated data
+    try:
+        f=open(data_sources['filename'], "r")
+        data = json.loads(f.read())
+        f.close()
+        for sRec in data:
+            for i, cRec in enumerate(data_sources['sources']):
+                if sRec['url'] == cRec['url']:
+                    data_sources['sources'][i]['updated'] = datetime.datetime.strptime(sRec['updated'], '%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        print('Error loading state data')
+        print(e)
+        saveDataUpdated()
+
 def getCSVfromURL(url, expected_header, delimiter=','):
     res = requests.get(url)
     if res.status_code != 200:
         print('Getting data failed. URL=' + url)
         return
+
+    # check updated
+    if 'Last-Modified' in res.headers:
+        found = False
+        last_modified_str=res.headers['Last-Modified']
+        last_modified_obj=parsedate_to_datetime(last_modified_str).replace(tzinfo=None)
+        for i, source in enumerate(data_sources['sources']):
+            if source['url'] == url:
+                found = True
+                if source['updated'] < last_modified_obj:
+                    data_sources['sources'][i]['updated'] = last_modified_obj
+                    data_sources['updated'] = True
+                break
+        if not found:
+            print('Warning: url Last-Modified is ignored: %s' % (url))
+    else:
+        print('No Last-Modified in request: %s' % (url))
+
     # get text
     text=res.text
     # strip magic header byte
     if text[0] == '\ufeff':
         text=res.text[1:]
-#    input_file = csv.DictReader(text.splitlines(), delimiter=',')
     input_file = csv.reader(text.splitlines(), delimiter=delimiter)
     header=True
     data = []
@@ -93,6 +151,9 @@ def main():
     if prefix_pos < 0 or prefix_pos + len(data_prefix) > template.find(data_suffix):
         print('Template validation failure')
         return
+
+    # read last updated from last update
+    loadDataUpdated()
 
     data = []
     lastdate_obj = datetime.datetime(1970, 1, 1)
@@ -260,9 +321,14 @@ def main():
     leadingText = template.split(data_prefix)[0] + data_prefix + '\n'
     trailingText = data_suffix + template.split(data_suffix)[1]
 
-    page.put(leadingText + output + trailingText, summary='Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')',
-             minor=False, botflag=False, apply_cosmetic_changes=False)
-    return
+    if data_sources['updated']:
+        page.put(leadingText + output + trailingText, summary='Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')',
+            minor=False, botflag=False, apply_cosmetic_changes=False)
+        # store info about Date-Modified of data sources
+        saveDataUpdated()
+    else:
+        print('Wiki is up2date')
+    return 1
 
 if __name__ == '__main__':
-    main()
+    exit(main())
