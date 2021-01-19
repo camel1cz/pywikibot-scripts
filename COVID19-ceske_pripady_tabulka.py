@@ -133,10 +133,10 @@ def percentDiff(a, b):
 
     diff=100*(b - a)/a
     if abs(diff) < 1:
-        return ' (%+0.2f%%)' % (diff)
+        return (' (%+0.2f%%)' % (diff)).replace('.', ',')
     if abs(diff) < 10:
-        return ' (%+0.1f%%)' % (diff)
-    return ' (%+d%%)' % (diff)
+        return (' (%+0.1f%%)' % (diff)).replace('.', ',')
+    return (' (%+d%%)' % (diff)).replace('.', ',')
 
 def main():
     pywikibot.handle_args()
@@ -192,15 +192,22 @@ def main():
 
     # Get ockovani
     # we have no datasets from government yet. Updated manually. weekly
-    known_data = { '2021-01-06': 19918, '2021-01-13': 70680 }
+    ockovani_known_data = { '2021-01-06': { 'hodnota': 19918}, '2021-01-13': { 'hodnota': 70680 } , '2021-01-17': { 'hodnota': 108239, 'reference': '''<ref>{{Citace elektronického periodika
+ | titul = Politici hodnotí první týdny očkování: Česko zaspalo, premiér řeší mikromanagement
+ | periodikum = ČT24
+ | datum_vydání = 2021-01-19
+ | url = https://ct24.ceskatelevize.cz/domaci/3256782-politici-hodnoti-prvni-tydny-ockovani-cesko-zaspalo-premier-resi-mikromanagement
+ | datum_přístupu = 2021-01-19
+}}</ref>''' }}
+    # zdroj dat 2021-01-17: https://www.lidovky.cz/domov/cesko-ma-podle-babise-objednanych-20-milionu-vakcin-proti-covidu-zatim-jsme-obdrzeli-necelych-170-ti.A210117_215054_ln_domov_sed
     for i, row in enumerate(data):
         # seek for the known data
         processed=0
-        if processed == len(known_data):
+        if processed == len(ockovani_known_data):
             break
-        if row['datum'].strftime('%Y-%m-%d') in known_data:
+        if row['datum'].strftime('%Y-%m-%d') in ockovani_known_data:
             processed+=1
-            data[i]['ockovani']=known_data[row['datum'].strftime('%Y-%m-%d')]
+            data[i]['ockovani']=ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]['hodnota']
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
@@ -298,8 +305,11 @@ def main():
             '\n| {{Nts|%d}}%s' % (row['hospitalizovani'] - prev_data['hospitalizovani'], percentDiff(row['hospitalizovani'], prev_data['hospitalizovani'])) +\
             '\n| {{Nts|%d}}' % (row['hospitalizovani'])
         if 'ockovani' in row:
+            reference = '';
+            if 'reference' in ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]:
+                reference = ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]['reference']
             output = output +\
-                '\n| {{N/A}}\n| {{Nts|%d}}' % (row['ockovani'])
+                '\n| {{N/A}}\n| {{Nts|%d%s}}' % (row['ockovani'], reference)
         else:
             output = output +\
                 '\n| {{N/A}}\n| {{N/A}}'
@@ -322,12 +332,13 @@ def main():
     trailingText = data_suffix + template.split(data_suffix)[1]
 
     if data_sources['updated']:
-        page.put(leadingText + output + trailingText, summary='Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')',
+        comment = 'Oprava desetiného oddelovače a přidání reference na počet očkovaných.'
+        page.put(leadingText + output + trailingText, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
         # store info about Date-Modified of data sources
         saveDataUpdated()
     else:
-        print('Wiki is up2date')
+        print('wikipedia is up2date')
     return 1
 
 if __name__ == '__main__':
