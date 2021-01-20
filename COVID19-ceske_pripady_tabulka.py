@@ -12,6 +12,7 @@ import dateutil.parser
 from email.utils import parsedate_to_datetime
 from bs4 import BeautifulSoup
 import json
+import os
 
 # configuration
 start_date = datetime.datetime(2020, 3, 1)
@@ -19,7 +20,7 @@ botname = 'COVID19dataczbot'
 data_prefix = '<!--BEGIN COVID19dataczbot area-->'
 data_suffix = '<!--END COVID19dataczbot area-->'
 target_article = 'Šablona:Data_pandemie_covidu-19/České_případy_tabulka'
-#target_article = 'Wikipedista:Camel1cz/Pískoviště'
+#target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 
 # data sources + tracking last updated
 data_sources = {
@@ -30,6 +31,10 @@ data_sources = {
         },
         {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv',
+            'updated': datetime.datetime(1970, 1, 1)
+        },
+        {
+            'url': 'ockovani.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ],
@@ -125,6 +130,42 @@ def getCSVfromURL(url, expected_header, delimiter=','):
         data.append(row)
     return data
 
+def getCSVfromFile(filename, expected_header, delimiter=','):
+    try:
+        # check updated
+        last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(filename)).replace(microsecond=0)
+        found = False
+        for i, source in enumerate(data_sources['sources']):
+            if source['url'] == filename:
+                found = True
+                if source['updated'] < last_modified:
+                    data_sources['sources'][i]['updated'] = last_modified
+                    data_sources['updated'] = True
+                break
+        if not found:
+            print('Warning: file Last-Modified is ignored: %s' % (filename))
+
+        f=open(filename, "r")
+        text = f.read()
+        f.close()
+        input_file = csv.reader(text.splitlines(), delimiter=delimiter)
+        header = True
+        data = {}
+        for row in input_file:
+            if header:
+                # validate header
+                for i, name in enumerate(expected_header, start=0):
+                    if row[i] != name:
+                        print(filename + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
+                        return data
+                header = False
+                continue
+            data[row[0]] = { 'hodnota': int(row[1]), 'reference': row[2] }
+        return data
+    except Exception as e:
+        print('Error loading %s' % (filename))
+        print(e)
+
 def percentDiff(a, b):
     if a == 0:
         return ''
@@ -191,23 +232,10 @@ def main():
             pos+=1
 
     # Get ockovani
-    # we have no datasets from government yet. Updated manually. weekly
-    ockovani_known_data = { '2021-01-06': { 'hodnota': 19918}, '2021-01-13': { 'hodnota': 70680 } , '2021-01-17': { 'hodnota': 108239, 'reference': '''<ref>{{Citace elektronického periodika
- | titul = Politici hodnotí první týdny očkování: Česko zaspalo, premiér řeší mikromanagement
- | periodikum = ČT24
- | datum_vydání = 2021-01-19
- | url = https://ct24.ceskatelevize.cz/domaci/3256782-politici-hodnoti-prvni-tydny-ockovani-cesko-zaspalo-premier-resi-mikromanagement
- | datum_přístupu = 2021-01-19
-}}</ref>''' }}
-    # zdroj dat 2021-01-17: https://www.lidovky.cz/domov/cesko-ma-podle-babise-objednanych-20-milionu-vakcin-proti-covidu-zatim-jsme-obdrzeli-necelych-170-ti.A210117_215054_ln_domov_sed
-    for i, row in enumerate(data):
-        # seek for the known data
-        processed=0
-        if processed == len(ockovani_known_data):
-            break
-        if row['datum'].strftime('%Y-%m-%d') in ockovani_known_data:
-            processed+=1
-            data[i]['ockovani']=ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]['hodnota']
+    # we have no datasets from government yet. Updated manually. weekly. Stored in local CSV file
+    url = 'ockovani.csv'
+    expected_header = ['datum', 'pocet_ockovanych', 'reference']
+    ockovani_data = getCSVfromFile(url, expected_header, ',')
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
@@ -305,14 +333,15 @@ def main():
             '\n| {{Nts|%d}}%s' % (row['hospitalizovani'] - prev_data['hospitalizovani'], percentDiff(row['hospitalizovani'], prev_data['hospitalizovani'])) +\
             '\n| {{Nts|%d}}' % (row['hospitalizovani'])
         if 'ockovani' in row:
-            reference = '';
-            if 'reference' in ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]:
-                reference = ockovani_known_data[row['datum'].strftime('%Y-%m-%d')]['reference']
             output = output +\
-                '\n| {{N/A}}\n| {{Nts|%d%s}}' % (row['ockovani'], reference)
+                '\n| {{N/A}}\n| {{Nts|%d}}' % (row['ockovani'])
         else:
-            output = output +\
-                '\n| {{N/A}}\n| {{N/A}}'
+            if row['datum'].strftime('%Y-%m-%d') in ockovani_data:
+                output = output +\
+                    '\n| {{N/A}}\n| {{Nts|%d%s}}' % (ockovani_data[row['datum'].strftime('%Y-%m-%d')]['hodnota'], ockovani_data[row['datum'].strftime('%Y-%m-%d')]['reference'])
+            else:
+                output = output +\
+                    '\n| {{N/A}}\n| {{N/A}}'
         if 'pes' in row:
             output = output +\
                 '\n| %d' % (row['pes'])
@@ -332,7 +361,8 @@ def main():
     trailingText = data_suffix + template.split(data_suffix)[1]
 
     if data_sources['updated']:
-        comment = 'Oprava desetiného oddelovače a přidání reference na počet očkovaných.'
+        comment = 'Aktualizace dat'
+        comment = 'Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
         page.put(leadingText + output + trailingText, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
         # store info about Date-Modified of data sources
