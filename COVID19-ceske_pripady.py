@@ -16,7 +16,7 @@ botname = 'COVID19dataczbot'
 data_prefix = '<!--BEGIN COVID19dataczbot area-->'
 data_suffix = '<!--END COVID19dataczbot area-->'
 target_article = 'Šablona:Data_pandemie_covidu-19/České_případy'
-#target_article = 'Wikipedista:Camel1cz/Pískoviště'
+#target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 last_updated_filename = botname + 'C19_pripady.lastupdated'
 
 def get_single_year(year):
