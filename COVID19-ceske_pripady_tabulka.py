@@ -157,7 +157,7 @@ def getCSVfromFile(filename, expected_header, delimiter=','):
                 for i, name in enumerate(expected_header, start=0):
                     if row[i] != name:
                         print(filename + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
-                        return data
+                        return {}
                 header = False
                 continue
             data[row[0]] = { 'hodnota': int(row[1]), 'reference': row[2] }
@@ -165,6 +165,7 @@ def getCSVfromFile(filename, expected_header, delimiter=','):
     except Exception as e:
         print('Error loading %s' % (filename))
         print(e)
+        return {}
 
 def percentDiff(a, b):
     if a == 0:
