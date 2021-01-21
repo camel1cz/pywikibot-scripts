@@ -34,7 +34,7 @@ data_sources = {
             'updated': datetime.datetime(1970, 1, 1)
         },
         {
-            'url': 'ockovani.csv',
+            'url': 'https://share.uzis.cz/s/ZEAZtS4dWQXKWF4/download',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ],
@@ -130,43 +130,6 @@ def getCSVfromURL(url, expected_header, delimiter=','):
         data.append(row)
     return data
 
-def getCSVfromFile(filename, expected_header, delimiter=','):
-    try:
-        # check updated
-        last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(filename)).replace(microsecond=0)
-        found = False
-        for i, source in enumerate(data_sources['sources']):
-            if source['url'] == filename:
-                found = True
-                if source['updated'] < last_modified:
-                    data_sources['sources'][i]['updated'] = last_modified
-                    data_sources['updated'] = True
-                break
-        if not found:
-            print('Warning: file Last-Modified is ignored: %s' % (filename))
-
-        f=open(filename, "r")
-        text = f.read()
-        f.close()
-        input_file = csv.reader(text.splitlines(), delimiter=delimiter)
-        header = True
-        data = {}
-        for row in input_file:
-            if header:
-                # validate header
-                for i, name in enumerate(expected_header, start=0):
-                    if row[i] != name:
-                        print(filename + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
-                        return {}
-                header = False
-                continue
-            data[row[0]] = { 'hodnota': int(row[1]), 'reference': row[2] }
-        return data
-    except Exception as e:
-        print('Error loading %s' % (filename))
-        print(e)
-        return {}
-
 def percentDiff(a, b):
     if a == 0:
         return ''
@@ -234,9 +197,22 @@ def main():
 
     # Get ockovani
     # we have no datasets from government yet. Updated manually. weekly. Stored in local CSV file
-    url = 'ockovani.csv'
-    expected_header = ['datum', 'pocet_ockovanych', 'reference']
-    ockovani_data = getCSVfromFile(url, expected_header, ',')
+    url = 'https://share.uzis.cz/s/ZEAZtS4dWQXKWF4/download'
+    expected_header = ['datum_vakcinace', 'vykázaná očkování']
+    pData = getCSVfromURL(url, expected_header, ',')
+    for row in pData:
+        # get date
+        row_date = datetime.datetime.strptime(row[0], '%b %d, %Y')
+        # skip date before start_date
+        if row_date < start_date:
+            continue;
+        # seek for the row_date in data
+        pos = 0
+        while pos < len(data) and data[pos]['datum'] <= row_date:
+            if data[pos]['datum'] == row_date:
+                data[pos]['ockovani'] = int(row[1])
+                break
+            pos+=1
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
@@ -286,7 +262,7 @@ def main():
     # output data
     output = '\n<noinclude>'
     noinclude_closed = False
-    prev_data = {'nakazeni': 0, 'zotaveni': 0, 'zemreli': 0, 'aktivni': 0, 'pocet_PCR_testu': 0, 'pocet_AG_testu': 0, 'hospitalizovani': 0}
+    prev_data = {'nakazeni': 0, 'zotaveni': 0, 'zemreli': 0, 'aktivni': 0, 'pocet_PCR_testu': 0, 'pocet_AG_testu': 0, 'hospitalizovani': 0, 'ockovani': 0}
     for row in data:
         # lastdate
         if row['datum'] > lastdate_obj:
@@ -333,16 +309,19 @@ def main():
         output = output +\
             '\n| {{Nts|%d}}%s' % (row['hospitalizovani'] - prev_data['hospitalizovani'], percentDiff(row['hospitalizovani'], prev_data['hospitalizovani'])) +\
             '\n| {{Nts|%d}}' % (row['hospitalizovani'])
+        # ockovani
         if 'ockovani' in row:
-            output = output +\
-                '\n| {{N/A}}\n| {{Nts|%d}}' % (row['ockovani'])
-        else:
-            if row['datum'].strftime('%Y-%m-%d') in ockovani_data:
+            if prev_data['ockovani'] + row['ockovani'] > 0:
                 output = output +\
-                    '\n| {{N/A}}\n| {{Nts|%d%s}}' % (ockovani_data[row['datum'].strftime('%Y-%m-%d')]['hodnota'], ockovani_data[row['datum'].strftime('%Y-%m-%d')]['reference'])
+                    '\n| {{Nts|%d}}\n| {{Nts|%d}}' % (row['ockovani'], prev_data['ockovani'] + row['ockovani'])
+                prev_data['ockovani'] = prev_data['ockovani'] + row['ockovani']
             else:
                 output = output +\
                     '\n| {{N/A}}\n| {{N/A}}'
+        else:
+            output = output +\
+                '\n| {{N/A}}\n| {{N/A}}'
+        # PES
         if 'pes' in row:
             output = output +\
                 '\n| %d' % (row['pes'])
