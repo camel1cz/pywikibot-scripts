@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-import requests
 
-import mwparserfromhell as parser
 import pywikibot
+import requests
 import re
 import csv
-import codecs
 import pytz
 import datetime
-import dateutil.parser
 from email.utils import parsedate_to_datetime
-from bs4 import BeautifulSoup
 import json
 import os
 
@@ -20,7 +16,7 @@ botname = 'COVID19dataczbot'
 data_prefix = '<!--BEGIN COVID19dataczbot area-->'
 data_suffix = '<!--END COVID19dataczbot area-->'
 target_article = 'Šablona:Data_pandemie_covidu-19/České_případy_tabulka'
-#target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
+target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 
 # data sources + tracking last updated
 data_sources = {
@@ -35,6 +31,10 @@ data_sources = {
         },
         {
             'url': 'https://share.uzis.cz/s/ZEAZtS4dWQXKWF4/download',
+            'updated': datetime.datetime(1970, 1, 1)
+        },
+        {
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ],
@@ -236,26 +236,21 @@ def main():
             pos+=1
 
     # Get hospitalizovane
-    # Get from JSON data from https://onemocneni-aktualne.mzcr.cz/covid-19
-    url = 'https://onemocneni-aktualne.mzcr.cz/covid-19'
-    res = requests.get(url)
-    soup = BeautifulSoup(res.text, 'html.parser')
-    res = soup.find(attrs={ 'id': 'js-hospitalization-table-data'})
-    pData = json.loads(res.get('data-table'))
-
-    # check format of json
-    if pData['header'][0]['title'] != 'Datum' or pData['header'][1]['title'] != 'Aktuální počet hospitalizovaných osob':
-        print(url + ' Error in table header')
-        return
-
-    for row in pData['body']:
+    # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv'
+    expected_header = ['datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
+    pData = getCSVfromURL(url, expected_header, ',')
+    for row in pData:
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%d.%m.%Y')
+        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        # skip date before start_date
+        if row_date < start_date:
+            continue
         # seek for the row_date in data
         pos=0
-        while pos < len(data):
+        while pos < len(data) and data[pos]['datum'] <= row_date:
             if data[pos]['datum'] == row_date:
-                data[pos]['hospitalizovani'] = int(row[1])
+                data[pos]['hospitalizovani'] = int(row[3])
                 break
             pos+=1
 
