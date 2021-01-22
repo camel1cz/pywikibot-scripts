@@ -16,7 +16,7 @@ botname = 'COVID19dataczbot'
 data_prefix = '<!--BEGIN COVID19dataczbot area-->'
 data_suffix = '<!--END COVID19dataczbot area-->'
 target_article = 'Šablona:Data_pandemie_covidu-19/České_případy_tabulka'
-target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
+#target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 
 # data sources + tracking last updated
 data_sources = {
@@ -202,7 +202,7 @@ def main():
     pData = getCSVfromURL(url, expected_header, ',')
     for row in pData:
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%b %d, %Y')
+        row_date = datetime.datetime.strptime(row[0], '%d %b %Y')
         # skip date before start_date
         if row_date < start_date:
             continue;
