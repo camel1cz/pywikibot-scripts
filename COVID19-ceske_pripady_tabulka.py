@@ -36,6 +36,10 @@ data_sources = {
         {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv',
             'updated': datetime.datetime(1970, 1, 1)
+        },
+        {
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv',
+            'updated': datetime.datetime(1970, 1, 1)
         }
     ],
     'updated': False,
@@ -196,23 +200,42 @@ def main():
             pos+=1
 
     # Get ockovani
-    # we have no datasets from government yet. Updated manually. weekly. Stored in local CSV file
-    url = 'https://share.uzis.cz/s/ZEAZtS4dWQXKWF4/download'
-    expected_header = ['datum_vakcinace', 'vykázaná očkování']
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
+    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
     pData = getCSVfromURL(url, expected_header, ',')
+    pDataDate = None
+    ockovani = 0
     for row in pData:
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%d %b %Y')
+        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             continue;
-        # seek for the row_date in data
+        if pDataDate == row_date:
+            ockovani += int(row[7])
+            continue
+        if pDataDate is None:
+            pDataDate = row_date
+            ockovani = int(row[7])
+            continue
+        # save old value
+        # seek for the pDataDate in data
         pos = 0
-        while pos < len(data) and data[pos]['datum'] <= row_date:
-            if data[pos]['datum'] == row_date:
-                data[pos]['ockovani'] = int(row[1])
+        while pos < len(data) and data[pos]['datum'] <= pDataDate:
+            if data[pos]['datum'] == pDataDate:
+                data[pos]['ockovani'] = ockovani
                 break
             pos+=1
+        pDataDate = row_date
+        ockovani = int(row[7])
+    # save last value
+    # seek for the pDataDate in data
+    pos = 0
+    while pDataDate is not None and pos < len(data) and data[pos]['datum'] <= pDataDate:
+        if data[pos]['datum'] == pDataDate:
+            data[pos]['ockovani'] = ockovani
+            break
+        pos+=1
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
