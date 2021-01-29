@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import pywikibot
-import requests
-import re
-import csv
-import pytz
 import datetime
-from email.utils import parsedate_to_datetime
-import json
-import os
 from babel.dates import format_date, format_datetime, format_time, get_timezone
+from camel1czutils import *
 
 # configuration
 start_date = datetime.datetime(2020, 3, 1)
@@ -20,8 +14,9 @@ target_article = 'Šablona:Data_pandemie_covidu-19/Česko_aktuálně'
 #target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 
 # data sources + tracking last updated
-data_sources = {
-    'sources': [
+data_sources['filename'] = botname + '_C19ceskoaktualne.lastupdated'
+data_sources['sources'] = \
+    [
         {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv',
             'updated': datetime.datetime(1970, 1, 1)
@@ -42,79 +37,7 @@ data_sources = {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
-    ],
-    'updated': False,
-    'updateddate': False,
-    'filename': botname + '_C19ceskoaktualne.lastupdated'
-}
-
-def saveDataUpdated():
-    try:
-        f=open(data_sources['filename'], "w")
-        f.write(json.dumps(data_sources['sources'], default=str))
-        f.close()
-    except Exception as e:
-        print('Storing of state data failed')
-        print(e)
-        pass
-
-def loadDataUpdated():
-    # read last updated data
-    try:
-        f=open(data_sources['filename'], "r")
-        data = json.loads(f.read())
-        f.close()
-        for sRec in data:
-            for i, cRec in enumerate(data_sources['sources']):
-                if sRec['url'] == cRec['url']:
-                    data_sources['sources'][i]['updated'] = datetime.datetime.strptime(sRec['updated'], '%Y-%m-%d %H:%M:%S')
-    except Exception as e:
-        print('Error loading state data')
-        print(e)
-        saveDataUpdated()
-
-def getCSVfromURL(url, expected_header, delimiter=','):
-    res = requests.get(url)
-    if res.status_code != 200:
-        print('Getting data failed. URL=' + url)
-        return
-
-    # check updated
-    if 'Last-Modified' in res.headers:
-        found = False
-        last_modified_str=res.headers['Last-Modified']
-        last_modified_obj=parsedate_to_datetime(last_modified_str).replace(tzinfo=None)
-        for i, source in enumerate(data_sources['sources']):
-            if source['url'] == url:
-                found = True
-                if source['updated'] < last_modified_obj:
-                    data_sources['sources'][i]['updated'] = data_sources['updateddate'] = last_modified_obj
-                    data_sources['updated'] = True
-                break
-        if not found:
-            print('Warning: url Last-Modified is ignored: %s' % (url))
-    else:
-        print('No Last-Modified in request: %s' % (url))
-
-    # get text
-    text=res.text
-    # strip magic header byte
-    if text[0] == '\ufeff':
-        text=res.text[1:]
-    input_file = csv.reader(text.splitlines(), delimiter=delimiter)
-    header=True
-    data = []
-    for row in input_file:
-        if header:
-            # validate header
-            for i, name in enumerate(expected_header, start=0):
-                if row[i] != name:
-                    print(url + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
-                    return data
-            header = False
-            continue
-        data.append(row)
-    return data
+    ]
 
 def main():
     pywikibot.handle_args()
@@ -128,7 +51,7 @@ def main():
     loadDataUpdated()
 
     data = []
-    lastdate_obj = datetime.datetime(1970, 1, 1)
+    lastdate_updated = datetime.datetime(1970, 1, 1)
 
     # Get basic data
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv
@@ -157,6 +80,9 @@ def main():
         # skip date before start_date
         if row_date < start_date:
             continue;
+        # lastdate
+        if row_date > lastdate_updated:
+            lastdate_updated = row_date
         data['ockovani'] += int(row[7])
 
     # Get hospitalizovane
@@ -191,7 +117,7 @@ def main():
 
     # store it into wiki template
     if data_sources['updated']:
-        comment = 'Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
+        comment = 'Aktualizace dat + statistika za ' + lastdate_updated.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
         page.put(output, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
         # store info about Date-Modified of data sources
