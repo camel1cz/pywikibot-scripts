@@ -8,6 +8,7 @@ from email.utils import parsedate_to_datetime
 data_sources = {
     'sources': [],
     'updated': False,
+    'updateddate': datetime.datetime(1970, 1, 1),
     'filename': '.lastupdated'
 }
 
@@ -53,6 +54,8 @@ def getCSVfromURL(url, expected_header, delimiter=','):
                 if source['updated'] < last_modified_obj:
                     data_sources['sources'][i]['updated'] = last_modified_obj
                     data_sources['updated'] = True
+                    if source['updated'] > data_sources['updateddate']:
+                        data_sources['updateddate'] = source['updated']
                 break
         if not found:
             print('Warning: url Last-Modified is ignored: %s' % (url))
