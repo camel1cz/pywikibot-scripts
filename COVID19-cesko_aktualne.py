@@ -73,7 +73,9 @@ def main():
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
     expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
     pData = getCSVfromURL(url, expected_header, ',')
-    data['ockovani'] = 0
+    data['plneockovani'] = 0
+    data['castecneockovani'] = 0
+    data['vakcin'] = 0
     for row in pData:
         # get date
         row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
@@ -83,7 +85,9 @@ def main():
         # lastdate
         if row_date > lastdate_updated:
             lastdate_updated = row_date
-        data['ockovani'] += int(row[7])
+        data['plneockovani'] += int(row[6])
+        data['castecneockovani'] += int(row[5])
+        data['vakcin'] += int(row[7])
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
@@ -95,6 +99,12 @@ def main():
 
     # finalize data
     data['aktualizovano'] = format_datetime(data_sources['updateddate'], "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
+    # osoby plne ockovane jsou pouze ty s 2 dávkami - obě aktuálně používané vakcíny mají 2 dávky - bereme přímo hodnotu počtu vykázaných 2. dávek
+    # počtet částečně očkovaných je počet vyočkovaných prvních dávek ponížený o počet druhých dávek
+    data['castecneockovani'] -= data['plneockovani']
+    # počet (nějak) očkovaných je součet plně a částečně očkovaných
+    data['ockovani'] = data['castecneockovani'] + data['plneockovani']
+    # počet vakcín je přímo udáván v datové sadě
 
     # output data
     output = '''<onlyinclude>{{{{Data pandemie covidu-19/Česko aktuálně/core
@@ -104,6 +114,9 @@ def main():
  |zotavení = {zotaveni}
  |aktivní případy = {aktivnipripady}
  |hospitalizovaní = {hospitalizovani}
+ |plněočkovaní    = {plneockovani}
+ |částečněočkovaní  = {castecneockovani}
+ |vakcín      = {vakcin}
  |očkovaní    = {ockovani}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
