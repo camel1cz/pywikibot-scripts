@@ -212,11 +212,11 @@ def main():
         if row_date < start_date:
             continue;
         if pDataDate == row_date:
-            ockovani += int(row[7])
+            ockovani += int(row[5])
             continue
         if pDataDate is None:
             pDataDate = row_date
-            ockovani = int(row[7])
+            ockovani = int(row[5])
             continue
         # save old value
         # seek for the pDataDate in data
@@ -227,7 +227,7 @@ def main():
                 break
             pos+=1
         pDataDate = row_date
-        ockovani = int(row[7])
+        ockovani = int(row[5])
     # save last value
     # seek for the pDataDate in data
     pos = 0
