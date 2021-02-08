@@ -38,10 +38,11 @@ def loadDataUpdated():
         saveDataUpdated()
 
 def getCSVfromURL(url, expected_header, delimiter=','):
+    data = []
     res = requests.get(url)
     if res.status_code != 200:
         print('Getting data failed. URL=' + url)
-        return
+        return data
 
     # check updated
     if 'Last-Modified' in res.headers:
@@ -69,7 +70,6 @@ def getCSVfromURL(url, expected_header, delimiter=','):
         text=res.text[1:]
     input_file = csv.reader(text.splitlines(), delimiter=delimiter)
     header=True
-    data = []
     for row in input_file:
         if header:
             # validate header
