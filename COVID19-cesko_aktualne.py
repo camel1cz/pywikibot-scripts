@@ -34,7 +34,7 @@ data_sources['sources'] = \
             'updated': datetime.datetime(1970, 1, 1)
         },
         {
-            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv',
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ]
@@ -70,8 +70,8 @@ def main():
     data['datum'] = format_date(row_date, "d. MMMM Y", locale='cs_CZ')
 
     # Get ockovani
-    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
+    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
     pData = getCSVfromURL(url, expected_header, ',')
     data['plneockovani'] = 0
     data['castecneockovani'] = 0
@@ -85,9 +85,11 @@ def main():
         # lastdate
         if row_date > lastdate_updated:
             lastdate_updated = row_date
-        data['plneockovani'] += int(row[6])
-        data['castecneockovani'] += int(row[5])
-        data['vakcin'] += int(row[7])
+        if int(row[6]) == 1:
+          data['castecneockovani'] += 1
+        else:
+          data['plneockovani'] += 1
+        data['vakcin'] += 1
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
