@@ -38,7 +38,7 @@ data_sources = {
             'updated': datetime.datetime(1970, 1, 1)
         },
         {
-            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv',
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ],
@@ -200,8 +200,8 @@ def main():
             pos+=1
 
     # Get ockovani
-    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
+    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
     pData = getCSVfromURL(url, expected_header, ',')
     pDataDate = None
     ockovani = 0
@@ -212,11 +212,15 @@ def main():
         if row_date < start_date:
             continue;
         if pDataDate == row_date:
-            ockovani += int(row[5])
+            if int(row[6]) == 1:
+                ockovani += 1
             continue
         if pDataDate is None:
             pDataDate = row_date
-            ockovani = int(row[5])
+            if int(row[6]) == 1:
+                ockovani = 1
+            else:
+                ockovani = 0
             continue
         # save old value
         # seek for the pDataDate in data
@@ -227,7 +231,10 @@ def main():
                 break
             pos+=1
         pDataDate = row_date
-        ockovani = int(row[5])
+        if int(row[6]) == 1:
+            ockovani = 1
+        else:
+            ockovani = 0
     # save last value
     # seek for the pDataDate in data
     pos = 0
