@@ -6,7 +6,12 @@ from email.utils import parsedate_to_datetime
 
 # data sources + tracking last updated
 data_sources = {
-    'sources': [],
+    'sources': [
+      {
+        'url': 'global',
+        'updated': datetime.datetime(1970, 1, 1)
+      }
+    ],
     'updated': False,
     'updateddate': datetime.datetime(1970, 1, 1),
     'filename': '.lastupdated'
@@ -36,6 +41,18 @@ def loadDataUpdated():
         print('Error loading state data')
         print(e)
         saveDataUpdated()
+
+def getUpdated(url):
+    for i, source in enumerate(data_sources['sources']):
+        if source['url'] == url:
+            return data_sources['sources'][i]['updated']
+    return datetime.datetime(1970, 1, 1)
+
+def setUpdated(url, dtm):
+    for i, source in enumerate(data_sources['sources']):
+        if source['url'] == url:
+            data_sources['sources'][i]['updated'] = dtm
+            return
 
 def getCSVfromURL(url, expected_header, delimiter=','):
     data = []
