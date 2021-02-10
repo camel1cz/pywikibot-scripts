@@ -98,3 +98,7 @@ def getCSVfromURL(url, expected_header, delimiter=','):
             continue
         data.append(row)
     return data
+
+def mk_int(s):
+    s = s.strip()
+    return int(s) if s else 0
