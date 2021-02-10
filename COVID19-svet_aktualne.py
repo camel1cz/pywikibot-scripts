@@ -158,7 +158,7 @@ def main():
 }}}}<ref name="JHU_ref">{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-09}}</ref></onlyinclude>
 <!-- *** Data pochází výhradně ze zdrojů Johns Hopkins University (JHU).
 -->
-{{documentation}}
+{{{{documentation}}}}
 [[Kategorie:Šablony:Pandemie covidu-19]]'''.format(**data)
 
     # need update?
