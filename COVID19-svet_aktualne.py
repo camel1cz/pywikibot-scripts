@@ -138,6 +138,7 @@ def main():
     data['vakcin'] = ppData['vakcin']
 
     # finalize data
+    data['ockovani'] = data['plneockovani'] + data['castecneockovani']
     data['aktualizovano'] = format_datetime(datetime.datetime.now(), "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
     data['datum'] = format_date(lastdate_updated2, "d. MMMM Y", locale='cs_CZ')
 
@@ -151,6 +152,7 @@ def main():
  |hospitalizovaní = {hospitalizovani}
  |plněočkovaní    = {plneockovani}
  |částečněočkovaní  = {castecneockovani}
+ |očkovaní  = {ockovani}
  |vakcín      = {vakcin}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
