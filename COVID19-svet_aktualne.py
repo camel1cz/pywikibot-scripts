@@ -141,6 +141,7 @@ def main():
     data['ockovani'] = data['plneockovani'] + data['castecneockovani']
     data['aktualizovano'] = format_datetime(datetime.datetime.now(), "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
     data['datum'] = format_date(lastdate_updated2, "d. MMMM Y", locale='cs_CZ')
+    data['datumpristupu'] = format_date(datetime.datetime.now(), "Y-MM-dd", locale='cs_CZ')
 
     # output data
     output = '''<onlyinclude>{{{{Data pandemie covidu-19/Svět aktuálně/core
@@ -157,7 +158,7 @@ def main():
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
  |typ         = {typ}
-}}}}<ref name="JHU_ref">{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-09}}</ref></onlyinclude>
+}}}}<ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu={datumpristupu}}}}}</ref></onlyinclude>
 <!-- *** Data pochází výhradně ze zdrojů Johns Hopkins University (JHU).
 -->
 {{{{documentation}}}}
