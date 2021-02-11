@@ -63,6 +63,7 @@ def main():
       'plneockovani': 0,
       'vakcin': 0,
       'hospitalizovani': 0,
+      'pocetzemi': 0,
       'typ': '{{{1}}}',
       'datum': ''
     }
@@ -120,6 +121,7 @@ def main():
       else:
         # change!
         last_location = row[0]
+        data['pocetzemi'] += 1
         data['castecneockovani'] += ppData['castecneockovani']
         data['plneockovani'] += ppData['plneockovani']
         data['vakcin'] += ppData['vakcin']
@@ -155,6 +157,7 @@ def main():
  |částečněočkovaní  = {castecneockovani}
  |očkovaní  = {ockovani}
  |vakcín      = {vakcin}
+ |počet = {pocetzemi}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
  |typ         = {typ}
