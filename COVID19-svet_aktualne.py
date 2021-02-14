@@ -68,6 +68,7 @@ def main():
       'datum': ''
     }
 
+    last_location = None
     for row in pData:
       # get date
       row_date = None
@@ -77,6 +78,10 @@ def main():
         row_date = datetime.datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S')
       except:
         pass
+      # nr. of countries with C19
+      if last_location != row[3]:
+        last_location = row[3]
+        data['pocetzemi'] += 1
       # lastdate
       if row_date > lastdate_updated:
         lastdate_updated = row_date
@@ -98,12 +103,12 @@ def main():
       return
 
     lastdate_updated2 = datetime.datetime(1970, 1, 1)
-    last_location = None
     ppData = {
       'castecneockovani': 0,
       'plneockovani': 0,
       'vakcin': 0
     }
+    last_location = None
     for row in pData:
       # get date
       row_date = None
@@ -121,7 +126,6 @@ def main():
       else:
         # change!
         last_location = row[0]
-        data['pocetzemi'] += 1
         data['castecneockovani'] += ppData['castecneockovani']
         data['plneockovani'] += ppData['plneockovani']
         data['vakcin'] += ppData['vakcin']
@@ -157,12 +161,42 @@ def main():
  |částečněočkovaní  = {castecneockovani}
  |očkovaní  = {ockovani}
  |vakcín      = {vakcin}
- |počet = {pocetzemi}
+ |počet zemí = {pocetzemi}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
  |typ         = {typ}
-}}}}<ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu={datumpristupu}}}}}</ref></onlyinclude>
-<!-- *** Data pochází výhradně ze zdrojů Johns Hopkins University (JHU).
+}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | testovaní
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | nakažení
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | úmrtí
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | zotavení
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | aktivní případy
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | plněočkovaní
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | částečněočkovaní
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref>=alespoň jedna dávka</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | očkovaní
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref>=alespoň jedna dávka</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | vakcín
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}{{{{#ifeq: {{{{{{1}}}}}}
+ | počet zemí
+ | <ref name="JHU_ref">{{{{Citace elektronické monografie | url=https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6 |titul=COVID-19 Dashboard by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU) |vydavatel=[[Johns Hopkins University]] |datum přístupu=2021-02-14}}}}</ref>
+ |}}}}</onlyinclude>
+<!-- *** Data o průběhu pandemie pochází ze zdrojů Johns Hopkins University (JHU), data o vakcinaci z Our Wrld in Data.
 -->
 {{{{documentation}}}}
 [[Kategorie:Šablony:Pandemie covidu-19]]'''.format(**data)
