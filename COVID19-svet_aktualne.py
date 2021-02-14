@@ -185,10 +185,10 @@ def main():
  | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref>
  |}}}}{{{{#ifeq: {{{{{{1}}}}}}
  | částečněočkovaní
- | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref>=alespoň jedna dávka</ref>
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref name="AJD_ref">=alespoň jedna dávka</ref>
  |}}}}{{{{#ifeq: {{{{{{1}}}}}}
  | očkovaní
- | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref>=alespoň jedna dávka</ref>
+ | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref><ref name="AJD_ref">=alespoň jedna dávka</ref>
  |}}}}{{{{#ifeq: {{{{{{1}}}}}}
  | vakcín
  | <ref name="OWD_ref">{{{{Citace elektronické monografie | url=https://ourworldindata.org/covid-vaccinations |titul=Coronavirus (COVID-19) Vaccinations - Statistics and Research - Our World in Data |vydavatel=[[Global Change Data Lab]] |datum přístupu=2021-02-14}}}}</ref>
