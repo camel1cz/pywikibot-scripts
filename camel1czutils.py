@@ -14,7 +14,9 @@ data_sources = {
     ],
     'updated': False,
     'updateddate': datetime.datetime(1970, 1, 1),
-    'filename': '.lastupdated'
+    'filename': '.lastupdated',
+    # use wiki template for number format?
+    'expand_templates': False
 }
 
 def saveDataUpdated():
@@ -102,3 +104,23 @@ def getCSVfromURL(url, expected_header, delimiter=','):
 def mk_int(s):
     s = s.strip()
     return int(s) if s else 0
+
+def template_nts(val):
+    t_sep = '&nbsp;'
+    d_sep = ','
+    if data_sources['expand_templates']:
+        return format(val, ",d").replace(",", t_sep)
+    return ('{{Nts|%d}}') % (val)
+
+def percentDiff(a, b):
+    if a == 0:
+        return ''
+    if a == b:
+        return ' (=)'
+
+    diff=100*(b - a)/a
+    if abs(diff) < 1:
+        return (' (%+0.2f%%)' % (diff)).replace('.', ',')
+    if abs(diff) < 10:
+        return (' (%+0.1f%%)' % (diff)).replace('.', ',')
+    return (' (%+d%%)' % (diff)).replace('.', ',')
