@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import pywikibot
+from camel1czutils import *
+
 import requests
 import re
 import csv
@@ -19,8 +21,10 @@ target_article = 'Šablona:Data_pandemie_covidu-19/České_případy_tabulka'
 #target_article = 'Wikipedista:Camel1cz_bot/Pískoviště'
 
 # data sources + tracking last updated
-data_sources = {
-    'sources': [
+data_sources['filename'] = botname + '_C19tabulka.lastupdated'
+data_sources['expand_templates'] = True
+data_sources['sources'].extend(
+    [
         {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv',
             'updated': datetime.datetime(1970, 1, 1)
@@ -41,10 +45,9 @@ data_sources = {
             'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
-    ],
-    'updated': False,
-    'filename': botname + '_C19tabulka.lastupdated'
-}
+    ]
+)
+
 table_header = '''|-
 ! rowspan="2" |Datum
 ! colspan="2" |Nakažení
@@ -65,87 +68,6 @@ table_header = '''|-
 !Nárůst!!Celkem
 !Nárůst!!Celkem
 !Nárůst!!Celkem'''
-
-def saveDataUpdated():
-    try:
-        f=open(data_sources['filename'], "w")
-        f.write(json.dumps(data_sources['sources'], default=str))
-        f.close()
-    except Exception as e:
-        print('Storing of state data failed')
-        print(e)
-        pass
-
-def loadDataUpdated():
-    # read last updated data
-    try:
-        f=open(data_sources['filename'], "r")
-        data = json.loads(f.read())
-        f.close()
-        for sRec in data:
-            for i, cRec in enumerate(data_sources['sources']):
-                if sRec['url'] == cRec['url']:
-                    data_sources['sources'][i]['updated'] = datetime.datetime.strptime(sRec['updated'], '%Y-%m-%d %H:%M:%S')
-    except Exception as e:
-        print('Error loading state data')
-        print(e)
-        saveDataUpdated()
-
-def getCSVfromURL(url, expected_header, delimiter=','):
-    res = requests.get(url)
-    if res.status_code != 200:
-        print('Getting data failed. URL=' + url)
-        return
-
-    # check updated
-    if 'Last-Modified' in res.headers:
-        found = False
-        last_modified_str=res.headers['Last-Modified']
-        last_modified_obj=parsedate_to_datetime(last_modified_str).replace(tzinfo=None)
-        for i, source in enumerate(data_sources['sources']):
-            if source['url'] == url:
-                found = True
-                if source['updated'] < last_modified_obj:
-                    data_sources['sources'][i]['updated'] = last_modified_obj
-                    data_sources['updated'] = True
-                break
-        if not found:
-            print('Warning: url Last-Modified is ignored: %s' % (url))
-    else:
-        print('No Last-Modified in request: %s' % (url))
-
-    # get text
-    text=res.text
-    # strip magic header byte
-    if text[0] == '\ufeff':
-        text=res.text[1:]
-    input_file = csv.reader(text.splitlines(), delimiter=delimiter)
-    header=True
-    data = []
-    for row in input_file:
-        if header:
-            # validate header
-            for i, name in enumerate(expected_header, start=0):
-                if row[i] != name:
-                    print(url + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
-                    return data
-            header = False
-            continue
-        data.append(row)
-    return data
-
-def percentDiff(a, b):
-    if a == 0:
-        return ''
-    if a == b:
-        return ' (=)'
-
-    diff=100*(b - a)/a
-    if abs(diff) < 1:
-        return (' (%+0.2f%%)' % (diff)).replace('.', ',')
-    if abs(diff) < 10:
-        return (' (%+0.1f%%)' % (diff)).replace('.', ',')
-    return (' (%+d%%)' % (diff)).replace('.', ',')
 
 def main():
     pywikibot.handle_args()
@@ -311,34 +233,34 @@ def main():
         output = output +\
             '\n|-' +\
             '\n!' + style + row['datum'].strftime(' %-d.&nbsp;%-m.&nbsp;%Y') +\
-            '\n| {{Nts|%d}}%s' % (row['nakazeni'] - prev_data['nakazeni'], percentDiff(prev_data['nakazeni'], row['nakazeni'])) +\
-            '\n| {{Nts|%d}}' % (row['nakazeni']) +\
-            '\n| {{Nts|%d}}%s' % (row['zotaveni'] - prev_data['zotaveni'], percentDiff(prev_data['zotaveni'], row['zotaveni'])) +\
-            '\n| {{Nts|%d}}' % (row['zotaveni']) +\
-            '\n| {{Nts|%d}}%s' % (row['zemreli'] - prev_data['zemreli'], percentDiff(prev_data['zemreli'], row['zemreli'])) +\
-            '\n| {{Nts|%d}}' % (row['zemreli'])
+            '\n| %s%s' % (template_nts(row['nakazeni'] - prev_data['nakazeni']), percentDiff(prev_data['nakazeni'], row['nakazeni'])) +\
+            '\n| %s' % (template_nts(row['nakazeni'])) +\
+            '\n| %s%s' % (template_nts(row['zotaveni'] - prev_data['zotaveni']), percentDiff(prev_data['zotaveni'], row['zotaveni'])) +\
+            '\n| %s' % (template_nts(row['zotaveni'])) +\
+            '\n| %s%s' % (template_nts(row['zemreli'] - prev_data['zemreli']), percentDiff(prev_data['zemreli'], row['zemreli'])) +\
+            '\n| %s' % (template_nts(row['zemreli']))
         p = row['nakazeni'] - row['zotaveni'] - row['zemreli']
         output = output +\
-            '\n| {{Nts|%d}}%s' % (p - prev_data['aktivni'], percentDiff(prev_data['aktivni'], p)) +\
-            '\n| {{Nts|%d}}' % (p) +\
-            '\n| {{Nts|%d}}' % (row['pocet_PCR_testu']-prev_data['pocet_PCR_testu']) +\
-            '\n| {{Nts|%d}}' % (row['pocet_PCR_testu'])
+            '\n| %s%s' % (template_nts(p - prev_data['aktivni']), percentDiff(prev_data['aktivni'], p)) +\
+            '\n| %s' % (template_nts(p)) +\
+            '\n| %s' % (template_nts(row['pocet_PCR_testu']-prev_data['pocet_PCR_testu'])) +\
+            '\n| %s' % (template_nts(row['pocet_PCR_testu']))
         if 'pocet_AG_testu' in row and (row['pocet_AG_testu'] > 0 or prev_data['pocet_AG_testu'] > 0):
             output = output +\
-                '\n| {{Nts|%d}}' % (row['pocet_AG_testu']) +\
-                '\n| {{Nts|%d}}' % (row['pocet_AG_testu']+prev_data['pocet_AG_testu'])
+                '\n| %s' % (template_nts(row['pocet_AG_testu'])) +\
+                '\n| %s' % (template_nts(row['pocet_AG_testu']+prev_data['pocet_AG_testu']))
             prev_data['pocet_AG_testu'] += row['pocet_AG_testu']
         else:
             output = output +\
                 '\n| {{N/A}}\n| {{N/A}}'
         output = output +\
-            '\n| {{Nts|%d}}%s' % (row['hospitalizovani'] - prev_data['hospitalizovani'], percentDiff(row['hospitalizovani'], prev_data['hospitalizovani'])) +\
-            '\n| {{Nts|%d}}' % (row['hospitalizovani'])
+            '\n| %s%s' % (template_nts(row['hospitalizovani'] - prev_data['hospitalizovani']), percentDiff(row['hospitalizovani'], prev_data['hospitalizovani'])) +\
+            '\n| %s' % (template_nts(row['hospitalizovani']))
         # ockovani
         if 'ockovani' in row:
             if prev_data['ockovani'] + row['ockovani'] > 0:
                 output = output +\
-                    '\n| {{Nts|%d}}\n| {{Nts|%d}}' % (row['ockovani'], prev_data['ockovani'] + row['ockovani'])
+                    '\n| %s\n| %s' % (template_nts(row['ockovani']), template_nts(prev_data['ockovani'] + row['ockovani']))
                 prev_data['ockovani'] = prev_data['ockovani'] + row['ockovani']
             else:
                 output = output +\
