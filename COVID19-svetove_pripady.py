@@ -56,6 +56,9 @@ def main():
     for row in pData:
         # get date
         row_date = None
+        # ignore ships
+        if row[3] == 'MS Zaandam' or row[3] == 'Diamond Princess':
+          continue
         try:
           # 2021-02-09 05:23:30
           # '%Y-%m-%d %H:%M:%S'
@@ -67,14 +70,14 @@ def main():
           lastdate_updated = row_date
         dFound = False
         for i, source in enumerate(data):
-          if source['zeme'] == row[3]:
+          if source['zeme'] == row[3].rstrip('*'):
             data[i]['nakazeni'] += int(row[7])
             data[i]['umrti'] += int(row[8])
             data[i]['vyleceno'] += int(row[9])
             dFound = True
 
         if not dFound:
-          data.append({'zeme': row[3], 'nakazeni': int(row[7]), 'umrti': int(row[8]), 'vyleceno': int(row[9])})
+          data.append({'zeme': row[3].rstrip('*'), 'nakazeni': int(row[7]), 'umrti': int(row[8]), 'vyleceno': int(row[9])})
 
     # sort data
     data.sort(key=get_nakazeni, reverse=True)
@@ -114,8 +117,8 @@ def main():
     trailingText = data_suffix + template.split(data_suffix)[1]
 
     if data_sources['updated']:
-        comment = 'Aktualizace dat'
-        comment = 'Aktualizace dat + statistika za ' + lastdate_updated.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
+        comment = 'Aktualizace dat' + ' (by ' + botname + ')'
+#        comment = 'Aktualizace dat + statistika za ' + lastdate_updated.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
         page.put(leadingText + output + trailingText, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
         # store info about updated timestamp of data sources
