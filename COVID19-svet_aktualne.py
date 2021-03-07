@@ -108,7 +108,6 @@ def main():
       'plneockovani': 0,
       'vakcin': 0
     }
-    last_location = None
     for row in pData:
       # get date
       row_date = None
@@ -119,26 +118,18 @@ def main():
       except:
         pass;
 
-      if last_location == row[0]:
-        ppData['castecneockovani'] = mk_int(row[4])
-        ppData['plneockovani'] = mk_int(row[5])
-        ppData['vakcin'] = mk_int(row[3])
-      else:
-        # change!
-        last_location = row[0]
-        data['castecneockovani'] += ppData['castecneockovani']
-        data['plneockovani'] += ppData['plneockovani']
-        data['vakcin'] += ppData['vakcin']
-        # start new
-        ppData['castecneockovani'] = mk_int(row[4])
-        ppData['plneockovani'] = mk_int(row[5])
-        ppData['vakcin'] = mk_int(row[3])
+      # ignore non world data
+      if row[0] != 'World':
+        continue;
 
-      # lastdate
+      # note new data
       if row_date > lastdate_updated2:
         lastdate_updated2 = row_date
+        ppData['castecneockovani'] = max(ppData['castecneockovani'], mk_int(row[4]))
+        ppData['plneockovani'] = max(ppData['plneockovani'], mk_int(row[5]))
+        ppData['vakcin'] = max(ppData['vakcin'], mk_int(row[3]))
 
-    # add last record
+    # use data found
     data['castecneockovani'] = ppData['castecneockovani']
     data['plneockovani'] = ppData['plneockovani']
     data['vakcin'] = ppData['vakcin']
