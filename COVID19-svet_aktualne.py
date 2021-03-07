@@ -136,7 +136,7 @@ def main():
 
     # finalize data
     data['ockovani'] = data['plneockovani'] + data['castecneockovani']
-    data['aktualizovano'] = format_datetime(datetime.datetime.now(), "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
+    data['aktualizovano'] = format_datetime(datetime.datetime.utcnow(), "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
     data['datum'] = format_date(lastdate_updated2, "d. MMMM Y", locale='cs_CZ')
     data['datumpristupu'] = format_date(datetime.datetime.now(), "Y-MM-dd", locale='cs_CZ')
 
@@ -203,6 +203,8 @@ def main():
 
     # store it into wiki template
     if data_sources['updated']:
+        print(output)
+        return 1
         comment = 'Aktualizace dat (by ' + botname + ')'
         page.put(output, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
