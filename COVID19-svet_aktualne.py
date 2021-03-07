@@ -203,8 +203,6 @@ def main():
 
     # store it into wiki template
     if data_sources['updated']:
-        print(output)
-        return 1
         comment = 'Aktualizace dat (by ' + botname + ')'
         page.put(output, summary=comment,
             minor=False, botflag=False, apply_cosmetic_changes=False)
