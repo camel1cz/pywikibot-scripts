@@ -141,7 +141,7 @@ def main():
     if data_sources['updated']:
         comment = 'Aktualizace dat + statistika za ' + lastdate_updated.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
         page.put(output, summary=comment,
-            minor=False, botflag=False, apply_cosmetic_changes=False)
+            minor=False, botflag=True, apply_cosmetic_changes=False)
         # store info about Date-Modified of data sources
         saveDataUpdated()
     else:
