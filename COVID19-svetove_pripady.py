@@ -71,13 +71,13 @@ def main():
         dFound = False
         for i, source in enumerate(data):
           if source['zeme'] == row[3].rstrip('*'):
-            data[i]['nakazeni'] += int(row[7])
-            data[i]['umrti'] += int(row[8])
-            data[i]['vyleceno'] += int(row[9])
+            data[i]['nakazeni'] += mk_int(row[7])
+            data[i]['umrti'] += mk_int(row[8])
+            data[i]['vyleceno'] += mk_int(row[9])
             dFound = True
 
         if not dFound:
-          data.append({'zeme': row[3].rstrip('*'), 'nakazeni': int(row[7]), 'umrti': int(row[8]), 'vyleceno': int(row[9])})
+          data.append({'zeme': row[3].rstrip('*'), 'nakazeni': mk_int(row[7]), 'umrti': mk_int(row[8]), 'vyleceno': mk_int(row[9])})
 
     # sort data
     data.sort(key=get_nakazeni, reverse=True)

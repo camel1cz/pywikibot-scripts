@@ -100,7 +100,7 @@ def main():
         # skip date before start_date
         if row_date < start_date:
             continue
-        data.append({'datum': row_date, 'nakazeni': int(row[1]), 'zotaveni': int(row[2]), 'zemreli': int(row[3]), 'pocet_PCR_testu': int(row[4])})
+        data.append({'datum': row_date, 'nakazeni': mk_int(row[1]), 'zotaveni': mk_int(row[2]), 'zemreli': mk_int(row[3]), 'pocet_PCR_testu': mk_int(row[4])})
 
     # Get PES data
     # get data from https://share.uzis.cz/s/BRfppYFpNTddAy4/download?path=%2F&files=pes_CR_verze2.csv
@@ -117,7 +117,7 @@ def main():
         pos=0
         while pos < len(data):
             if data[pos]['datum'] == row_date:
-                data[pos]['pes'] = int(row[2])
+                data[pos]['pes'] = mk_int(row[2])
                 break
             pos+=1
 
@@ -134,12 +134,12 @@ def main():
         if row_date < start_date:
             continue;
         if pDataDate == row_date:
-            if int(row[6]) == 1:
+            if mk_int(row[6]) == 1:
                 ockovani += 1
             continue
         if pDataDate is None:
             pDataDate = row_date
-            if int(row[6]) == 1:
+            if mk_int(row[6]) == 1:
                 ockovani = 1
             else:
                 ockovani = 0
@@ -153,7 +153,7 @@ def main():
                 break
             pos+=1
         pDataDate = row_date
-        if int(row[6]) == 1:
+        if mk_int(row[6]) == 1:
             ockovani = 1
         else:
             ockovani = 0
@@ -182,8 +182,8 @@ def main():
         while pos < len(data):
             if data[pos]['datum'] == row_date:
 #                if len(row[1]) > 0:
-#                    data[pos]['pocet_PCR_testu'] = int(row[1])
-                data[pos]['pocet_AG_testu'] = int(row[2])
+#                    data[pos]['pocet_PCR_testu'] = mk_int(row[1])
+                data[pos]['pocet_AG_testu'] = mk_int(row[2])
                 break
             pos+=1
 
@@ -202,7 +202,7 @@ def main():
         pos=0
         while pos < len(data) and data[pos]['datum'] <= row_date:
             if data[pos]['datum'] == row_date:
-                data[pos]['hospitalizovani'] = int(row[3])
+                data[pos]['hospitalizovani'] = mk_int(row[3])
                 break
             pos+=1
 
