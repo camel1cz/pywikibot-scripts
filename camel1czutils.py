@@ -103,7 +103,7 @@ def getCSVfromURL(url, expected_header, delimiter=','):
 
 def mk_int(s):
     s = s.strip()
-    return int(s) if s else 0
+    return int(float(s)) if s else 0
 
 def template_nts(val):
     t_sep = '&nbsp;'
