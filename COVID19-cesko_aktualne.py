@@ -54,18 +54,11 @@ def main():
     lastdate_updated = datetime.datetime(1970, 1, 1)
 
     # Get basic data
-    yest = (datetime.datetime.now() - datetime.timedelta(days=1))
-    yest = yest.replace(hour=0, minute=0, second=0, microsecond=0)
-    url = ('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/%s.csv') % (yest.strftime("%m-%d-%Y"))
-    expected_header = ['FIPS', 'Admin2', 'Province_State', 'Country_Region', 'Last_Update', 'Lat', 'Long_', 'Confirmed', 'Deaths', 'Recovered', 'Active', 'Combined_Key', 'Incident_Rate', 'Case_Fatality_Ratio']
-    pData = getCSVfromURL(url, expected_header)
-    if len(pData) <= 0:
-      print("No data available")
-      print("wikipedia is up2date")
-      return
-
-    # loop over all data ans sum it
-    for row in pData:
+    # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv'
+    expected_header = ['datum', 'kumulativni_pocet_nakazenych', 'kumulativni_pocet_vylecenych', 'kumulativni_pocet_umrti', 'kumulativni_pocet_testu']
+    pData = getCSVfromURL(url, expected_header)[-1]
+    row_date = datetime.datetime.strptime(pData[0], '%Y-%m-%d')
 
     data = {}
     data['testovani'] = mk_int(pData[4])
