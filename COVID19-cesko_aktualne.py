@@ -84,7 +84,6 @@ def main():
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
     expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
-    pData = getCSVfromURL(url, expected_header, ',')
     data['plneockovani'] = 0
     data['castecneockovani'] = 0
     data['vakcin'] = 0
