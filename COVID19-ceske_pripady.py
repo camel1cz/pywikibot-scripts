@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pywikibot
+import gc
 from camel1czutils import *
 
 # configuration
@@ -51,6 +52,9 @@ def main():
         if row_date > lastdate_updated:
             lastdate_updated = row_date
         output+=(row[0]+';'+row[3]+';'+row[2]+';'+row[1]+'\n')
+
+    pData = None
+    gc.collect()
 
     # store it into wiki template
     leadingText = template.split(data_prefix)[0] + data_prefix + '\n'

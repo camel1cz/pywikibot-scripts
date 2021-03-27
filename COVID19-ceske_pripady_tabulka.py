@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pywikibot
+import gc
 from camel1czutils import *
 
 import requests
@@ -101,6 +102,8 @@ def main():
         if row_date < start_date:
             continue
         data.append({'datum': row_date, 'nakazeni': mk_int(row[1]), 'zotaveni': mk_int(row[2]), 'zemreli': mk_int(row[3]), 'pocet_PCR_testu': mk_int(row[4])})
+    pData = None
+    gc.collect()
 
     # Get PES data
     # get data from https://share.uzis.cz/s/BRfppYFpNTddAy4/download?path=%2F&files=pes_CR_verze2.csv
@@ -120,6 +123,8 @@ def main():
                 data[pos]['pes'] = mk_int(row[2])
                 break
             pos+=1
+    pData = None
+    gc.collect()
 
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
@@ -165,6 +170,8 @@ def main():
             data[pos]['ockovani'] = ockovani
             break
         pos+=1
+    pData = None
+    gc.collect()
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
@@ -186,6 +193,8 @@ def main():
                 data[pos]['pocet_AG_testu'] = mk_int(row[2])
                 break
             pos+=1
+    pData = None
+    gc.collect()
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
@@ -205,6 +214,8 @@ def main():
                 data[pos]['hospitalizovani'] = mk_int(row[3])
                 break
             pos+=1
+    pData = None
+    gc.collect()
 
     # output data
     output = '\n<noinclude>'
