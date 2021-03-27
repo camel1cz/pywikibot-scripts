@@ -2,6 +2,7 @@
 
 import pywikibot
 import datetime
+import gc
 from babel.dates import format_date, format_datetime, format_time, get_timezone
 from camel1czutils import *
 
@@ -92,6 +93,9 @@ def main():
     # active cases
     data['aktivnipripady'] = data['nakazeni'] - data['umrti'] - data['zotaveni']
 
+    pData = None
+    gc.collect()
+
     # get vaccination data
     # https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv
     url = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv'
@@ -128,6 +132,8 @@ def main():
         ppData['castecneockovani'] = max(ppData['castecneockovani'], mk_int(row[4]))
         ppData['plneockovani'] = max(ppData['plneockovani'], mk_int(row[5]))
         ppData['vakcin'] = max(ppData['vakcin'], mk_int(row[3]))
+    pData = None
+    gc.collect()
 
     # use data found
     data['castecneockovani'] = ppData['castecneockovani']
