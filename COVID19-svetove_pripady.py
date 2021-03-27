@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pywikibot
+import gc
 from camel1czutils import *
 
 # configuration
@@ -78,6 +79,8 @@ def main():
 
         if not dFound:
           data.append({'zeme': row[3].rstrip('*'), 'nakazeni': mk_int(row[7]), 'umrti': mk_int(row[8]), 'vyleceno': mk_int(row[9])})
+    pData = None
+    gc.collect()
 
     # sort data
     data.sort(key=get_nakazeni, reverse=True)
