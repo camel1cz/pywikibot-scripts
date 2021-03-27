@@ -3,6 +3,7 @@ import datetime
 import csv
 import json
 from email.utils import parsedate_to_datetime
+from contextlib import closing
 
 # data sources + tracking last updated
 data_sources = {
@@ -99,6 +100,58 @@ def getCSVfromURL(url, expected_header, delimiter=','):
             header = False
             continue
         data.append(row)
+    return data
+
+def processCVSfromURL(url, expected_header, callback, delimiter=','):
+    data = []
+    headerChecked = False
+    with closing(requests.get(url, stream=True)) as r:
+        # loop the lines
+        for line in r.iter_lines():
+            line = line.decode("utf-8")
+            # work with header at first
+            if not headerChecked:
+                # check status code
+                if r.status_code != 200:
+                    print('Getting data failed. URL=' + url)
+                    return data
+                # check updated
+                if 'Last-Modified' in r.headers:
+                    found = False
+                    last_modified_str=r.headers['Last-Modified']
+                    last_modified_obj=parsedate_to_datetime(last_modified_str).replace(tzinfo=None)
+                    for i, source in enumerate(data_sources['sources']):
+                        if source['url'] == url:
+                            found = True
+                            if source['updated'] < last_modified_obj:
+                                data_sources['sources'][i]['updated'] = last_modified_obj
+                                data_sources['updated'] = True
+                                if source['updated'] > data_sources['updateddate']:
+                                    data_sources['updateddate'] = source['updated']
+                            break
+                    if not found:
+                        print('Warning: url Last-Modified is ignored: %s' % (url))
+                else:
+                    print('No Last-Modified in request: %s' % (url))
+
+                # skip magic word
+                if line[0] == '\ufeff':
+                    line=line[1:]
+
+                # get csv from line
+                row = next(csv.reader([line], delimiter=',', quotechar='"'))
+
+                # validate header
+                for i, name in enumerate(expected_header, start=0):
+                    if row[i] != name:
+                        print(url + ': Unexpected format of CSV (expected "' + name + '" got "' + row[i] + '"')
+                        return data
+                headerChecked = True
+                continue
+
+            # get csv from line
+            row = next(csv.reader([line], delimiter=',', quotechar='"'))
+            data = callback(row)
     return data
 
 def mk_int(s):
