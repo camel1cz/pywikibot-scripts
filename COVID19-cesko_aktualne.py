@@ -40,7 +40,12 @@ data_sources['sources'] = \
         }
     ]
 
+# global vars
+data = {}
+lastdate_updated = datetime.datetime(1970, 1, 1)
+
 def main():
+    global lastdate_updated, data
     pywikibot.handle_args()
     site = pywikibot.Site()
 
@@ -51,24 +56,30 @@ def main():
     # read last updated from last update
     loadDataUpdated()
 
-    data = []
-    lastdate_updated = datetime.datetime(1970, 1, 1)
-
     # Get basic data
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv'
     expected_header = ['datum', 'kumulativni_pocet_nakazenych', 'kumulativni_pocet_vylecenych', 'kumulativni_pocet_umrti', 'kumulativni_pocet_testu']
-    pData = getCSVfromURL(url, expected_header)[-1]
-    row_date = datetime.datetime.strptime(pData[0], '%Y-%m-%d')
 
-    data = {}
-    data['testovani'] = mk_int(pData[4])
-    data['nakazeni']  = mk_int(pData[1])
-    data['umrti']  = mk_int(pData[3])
-    data['zotaveni']  = mk_int(pData[2])
-    data['aktivnipripady']  = data['nakazeni'] - data['umrti'] - data['zotaveni']
-    data['typ'] = '{{{1}}}'
-    data['datum'] = format_date(row_date, "d. MMMM Y", locale='cs_CZ')
+
+    def callback_nvut_csv(row):
+        global data
+
+        # get date
+        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        # skip date before start_date
+        if row_date < start_date:
+            return
+        # data
+        data['testovani'] = mk_int(row[4])
+        data['nakazeni']  = mk_int(row[1])
+        data['umrti']  = mk_int(row[3])
+        data['zotaveni']  = mk_int(row[2])
+        data['aktivnipripady']  = data['nakazeni'] - data['umrti'] - data['zotaveni']
+        data['typ'] = '{{{1}}}'
+        data['datum'] = format_date(row_date, "d. MMMM Y", locale='cs_CZ')
+
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_nvut_csv)
 
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
@@ -77,30 +88,46 @@ def main():
     data['plneockovani'] = 0
     data['castecneockovani'] = 0
     data['vakcin'] = 0
-    for row in pData:
+
+    def callback_om_csv(row):
+        global lastdate_updated, data
+
+        # empty data
+        if not row:
+            return
         # get date
         row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
-            continue;
+            return
         # lastdate
         if row_date > lastdate_updated:
             lastdate_updated = row_date
+        # data
         if mk_int(row[6]) == 1:
           data['castecneockovani'] += 1
         else:
           data['plneockovani'] += 1
         data['vakcin'] += 1
-    pData = None
-    gc.collect()
+
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_om_csv)
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv'
     expected_header = ['datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
-    pData = getCSVfromURL(url, expected_header, ',')[-1]
-    data['hospitalizovani'] = pData[3]
 
+    def callback_hosp_csv(row):
+        global lastdate_updated, data
+
+        # get date
+        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        # skip date before start_date
+        if row_date < start_date:
+            return
+        data['hospitalizovani'] = mk_int(row[3])
+
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_hosp_csv)
 
     # finalize data
     data['aktualizovano'] = format_datetime(data_sources['updateddate'], "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
