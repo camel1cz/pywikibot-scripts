@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pywikibot
-import gc
+from contextlib import closing
 from camel1czutils import *
 
 # configuration
@@ -17,7 +17,13 @@ data_sources['sources'].append({
     'updated': datetime.datetime(1970, 1, 1)
 });
 
+# global variables
+lastdate_updated = datetime.datetime(1970, 1, 1)
+output = ''
+
 def main():
+    global lastdate_updated, output
+
     pywikibot.handle_args()
     site = pywikibot.Site()
 
@@ -38,23 +44,21 @@ def main():
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/nakazeni-vyleceni-umrti-testy.csv'
     expected_header = ['datum', 'kumulativni_pocet_nakazenych', 'kumulativni_pocet_vylecenych', 'kumulativni_pocet_umrti', 'kumulativni_pocet_testu']
-    pData = getCSVfromURL(url, expected_header)
-    output=''
-    lastdate_updated = datetime.datetime(1970, 1, 1)
 
-    for row in pData:
+    def callback_nvut_csv(row):
+        global lastdate_updated, output
+
         # get date
         row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
-            continue
+            return
         # lastdate
         if row_date > lastdate_updated:
             lastdate_updated = row_date
         output+=(row[0]+';'+row[3]+';'+row[2]+';'+row[1]+'\n')
 
-    pData = None
-    gc.collect()
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_nvut_csv)
 
     # store it into wiki template
     leadingText = template.split(data_prefix)[0] + data_prefix + '\n'
