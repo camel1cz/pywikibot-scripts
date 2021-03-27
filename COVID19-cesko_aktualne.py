@@ -2,6 +2,7 @@
 
 import pywikibot
 import datetime
+import gc
 from babel.dates import format_date, format_datetime, format_time, get_timezone
 from camel1czutils import *
 
@@ -90,6 +91,8 @@ def main():
         else:
           data['plneockovani'] += 1
         data['vakcin'] += 1
+    pData = None
+    gc.collect()
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
