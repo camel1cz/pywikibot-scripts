@@ -3,7 +3,6 @@
 import pywikibot
 from camel1czutils import *
 
-import gc
 import requests
 import re
 import csv
@@ -74,9 +73,11 @@ table_header = '''|-
 data = []
 lastdate_obj = datetime.datetime(1970, 1, 1)
 lastdate_updated = datetime.datetime(1970, 1, 1)
+pDataDate = None
+ockovani = 0
 
 def main():
-    global data, lastdate_obj, lastdate_updated
+    global data, lastdate_obj, lastdate_updated, pDataDate, ockovani
 
     pywikibot.handle_args()
     site = pywikibot.Site()
@@ -140,32 +141,43 @@ def main():
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
     expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
-    pData = getCSVfromURL(url, expected_header, ',')
-    pDataDate = None
-    ockovani = 0
-    for row in pData:
+
+    def callback_ocko_csv(row):
+        global lastdate_updated, data, pDataDate, ockovani
+
         # get date
         row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
-            continue;
+            return
+        # add
         if pDataDate == row_date:
             if mk_int(row[6]) == 1:
                 ockovani += 1
-            continue
+            return
         if pDataDate is None:
             pDataDate = row_date
             if mk_int(row[6]) == 1:
                 ockovani = 1
             else:
                 ockovani = 0
-            continue
-        # save old value
-        # seek for the pDataDate in data
+            return
+
+        # seek for the row_date in data
         pos = 0
         while pos < len(data) and data[pos]['datum'] <= pDataDate:
             if data[pos]['datum'] == pDataDate:
                 data[pos]['ockovani'] = ockovani
+                break
+            pos+=1
+
+
+
+        pos=0
+        while pos < len(data) and data[pos]['datum'] <= row_date:
+            if data[pos]['datum'] == row_date and mk_int(row[6]) == 1:
+                ockovani += 1
+                data[pos]['ockovani'] += 1
                 break
             pos+=1
         pDataDate = row_date
@@ -173,6 +185,9 @@ def main():
             ockovani = 1
         else:
             ockovani = 0
+
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=';', callback=callback_ocko_csv)
+
     # save last value
     # seek for the pDataDate in data
     pos = 0
@@ -181,8 +196,6 @@ def main():
             data[pos]['ockovani'] = ockovani
             break
         pos+=1
-    pData = None
-    gc.collect()
 
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
@@ -314,8 +327,6 @@ def main():
     if data_sources['updated']:
         comment = 'Aktualizace dat'
         comment = 'Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
-        print(output)
-        return
         page.put(leadingText + output + trailingText, summary=comment,
             minor=False, botflag=True, apply_cosmetic_changes=False)
         # store info about Date-Modified of data sources
