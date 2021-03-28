@@ -139,7 +139,7 @@ def processCVSfromURL(url, expected_header, callback, delimiter=','):
                     line=line[1:]
 
                 # get csv from line
-                row = next(csv.reader([line], delimiter=',', quotechar='"'))
+                row = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
 
                 # validate header
                 for i, name in enumerate(expected_header, start=0):
@@ -150,7 +150,7 @@ def processCVSfromURL(url, expected_header, callback, delimiter=','):
                 continue
 
             # get csv from line
-            row = next(csv.reader([line], delimiter=',', quotechar='"'))
+            row = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
             data = callback(row)
     return data
 
