@@ -170,23 +170,13 @@ def main():
                 data[pos]['ockovani'] = ockovani
                 break
             pos+=1
-
-
-
-        pos=0
-        while pos < len(data) and data[pos]['datum'] <= row_date:
-            if data[pos]['datum'] == row_date and mk_int(row[6]) == 1:
-                ockovani += 1
-                data[pos]['ockovani'] += 1
-                break
-            pos+=1
         pDataDate = row_date
         if mk_int(row[6]) == 1:
             ockovani = 1
         else:
             ockovani = 0
 
-    processCVSfromURL(url=url, expected_header=expected_header, delimiter=';', callback=callback_ocko_csv)
+    processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_ocko_csv)
 
     # save last value
     # seek for the pDataDate in data
