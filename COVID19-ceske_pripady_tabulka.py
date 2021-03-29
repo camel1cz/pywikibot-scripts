@@ -145,6 +145,9 @@ def main():
     def callback_ocko_csv(row):
         global lastdate_updated, data, pDataDate, ockovani
 
+        # empty data
+        if not row:
+            return
         # get date
         row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
         # skip date before start_date
