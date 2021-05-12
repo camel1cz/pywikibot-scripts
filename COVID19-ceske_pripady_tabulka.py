@@ -139,8 +139,8 @@ def main():
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=';', callback=callback_pes_csv)
 
     # Get ockovani
-    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
+    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
 
     def callback_ocko_csv(row):
         global lastdate_updated, data, pDataDate, ockovani
@@ -155,15 +155,11 @@ def main():
             return
         # add
         if pDataDate == row_date:
-            if mk_int(row[6]) == 1:
-                ockovani += 1
+            ockovani += mk_int(row[7])
             return
         if pDataDate is None:
             pDataDate = row_date
-            if mk_int(row[6]) == 1:
-                ockovani = 1
-            else:
-                ockovani = 0
+            ockovani = mk_int(row[7])
             return
 
         # seek for the row_date in data
@@ -174,10 +170,7 @@ def main():
                 break
             pos+=1
         pDataDate = row_date
-        if mk_int(row[6]) == 1:
-            ockovani = 1
-        else:
-            ockovani = 0
+        ockovani = mk_int(row[7])
 
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_ocko_csv)
 
