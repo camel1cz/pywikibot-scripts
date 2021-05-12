@@ -35,7 +35,7 @@ data_sources['sources'] = \
             'updated': datetime.datetime(1970, 1, 1)
         },
         {
-            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv',
+            'url': 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv',
             'updated': datetime.datetime(1970, 1, 1)
         }
     ]
@@ -82,8 +82,8 @@ def main():
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_nvut_csv)
 
     # Get ockovani
-    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovaci-mista.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'zarizeni_kod', 'zarizeni_nazev', 'poradi_davky', 'vekova_skupina']
+    url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
+    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
     data['plneockovani'] = 0
     data['castecneockovani'] = 0
     data['vakcin'] = 0
@@ -103,11 +103,9 @@ def main():
         if row_date > lastdate_updated:
             lastdate_updated = row_date
         # data
-        if mk_int(row[6]) == 1:
-          data['castecneockovani'] += 1
-        else:
-          data['plneockovani'] += 1
-        data['vakcin'] += 1
+        data['castecneockovani'] += mk_int(row[5])
+        data['plneockovani'] += mk_int(row[6])
+        data['vakcin'] += mk_int(row[7])
 
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_om_csv)
 
