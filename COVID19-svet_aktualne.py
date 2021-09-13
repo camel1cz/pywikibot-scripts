@@ -99,7 +99,7 @@ def main():
     # get vaccination data
     # https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv
     url = 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv'
-    expected_header = ['location', 'iso_code', 'date', 'total_vaccinations' ,'people_vaccinated', 'people_fully_vaccinated', 'daily_vaccinations_raw', 'daily_vaccinations', 'total_vaccinations_per_hundred', 'people_vaccinated_per_hundred', 'people_fully_vaccinated_per_hundred', 'daily_vaccinations_per_million']
+    expected_header = ['location', 'iso_code', 'date', 'total_vaccinations' ,'people_vaccinated', 'people_fully_vaccinated', 'total_boosters', 'daily_vaccinations_raw', 'daily_vaccinations', 'total_vaccinations_per_hundred', 'people_vaccinated_per_hundred', 'people_fully_vaccinated_per_hundred', 'total_boosters_per_hundred', 'daily_vaccinations_per_million']
     pData = getCSVfromURL(url, expected_header)
     if len(pData) <= 0:
       print("Can't get data")
