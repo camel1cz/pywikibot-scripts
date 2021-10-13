@@ -151,7 +151,14 @@ def processCVSfromURL(url, expected_header, callback, delimiter=','):
 
             # get csv from line
             row = next(csv.reader([line], delimiter=delimiter, quotechar='"'))
-            data = callback(row)
+            try:
+              if len(row) > 0:
+                data = callback(row)
+            except Exception as e:
+              print(e)
+              print('On data:')
+              print(row)
+              raise
     return data
 
 def mk_int(s):
