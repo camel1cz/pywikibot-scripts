@@ -311,7 +311,6 @@ def main():
     trailingText = data_suffix + template.split(data_suffix)[1]
 
     if data_sources['updated']:
-        comment = 'Aktualizace dat'
         comment = 'Aktualizace dat + statistika za ' + lastdate_obj.strftime('%-d.%-m.%Y') + ' (by ' + botname + ')'
         page.put(leadingText + output + trailingText, summary=comment,
             minor=False, botflag=True, apply_cosmetic_changes=False)
