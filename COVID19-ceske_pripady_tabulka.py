@@ -159,7 +159,7 @@ def main():
             if data[pos]['datum'] == row_date:
                 if 'ockovani' not in data[pos]:
                   data[pos]['ockovani'] = 0
-                data[pos]['ockovani'] += mk_int(row[7])
+                data[pos]['ockovani'] += mk_int(row[6])
                 break
             pos+=1
 
