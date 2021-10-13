@@ -153,24 +153,15 @@ def main():
         # skip date before start_date
         if row_date < start_date:
             return
-        # add
-        if pDataDate == row_date:
-            ockovani += mk_int(row[7])
-            return
-        if pDataDate is None:
-            pDataDate = row_date
-            ockovani = mk_int(row[7])
-            return
-
-        # seek for the row_date in data
+        # seek for the row_date in data and add the date
         pos = 0
-        while pos < len(data) and data[pos]['datum'] <= pDataDate:
-            if data[pos]['datum'] == pDataDate:
-                data[pos]['ockovani'] = ockovani
+        while pos < len(data) and data[pos]['datum'] <= row_date:
+            if data[pos]['datum'] == row_date:
+                if 'ockovani' not in data[pos]:
+                  data[pos]['ockovani'] = 0
+                data[pos]['ockovani'] += mk_int(row[7])
                 break
             pos+=1
-        pDataDate = row_date
-        ockovani = mk_int(row[7])
 
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_ocko_csv)
 
