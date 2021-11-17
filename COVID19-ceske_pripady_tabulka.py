@@ -140,7 +140,7 @@ def main():
 
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
+    expected_header = ['id', 'datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
 
     def callback_ocko_csv(row):
         global lastdate_updated, data, pDataDate, ockovani
@@ -149,7 +149,7 @@ def main():
         if not row:
             return
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        row_date = datetime.datetime.strptime(row[1], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             return
@@ -159,7 +159,7 @@ def main():
             if data[pos]['datum'] == row_date:
                 if 'ockovani' not in data[pos]:
                   data[pos]['ockovani'] = 0
-                data[pos]['ockovani'] += mk_int(row[6])
+                data[pos]['ockovani'] += mk_int(row[7])
                 break
             pos+=1
 
@@ -177,13 +177,13 @@ def main():
     # Get testovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/testy-pcr-antigenni.csv'
-    expected_header = ['datum', 'pocet_PCR_testy', 'pocet_AG_testy']
+    expected_header = ['id', 'datum', 'pocet_PCR_testy', 'pocet_AG_testy']
 
     def callback_test_csv(row):
         global lastdate_updated, data
 
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        row_date = datetime.datetime.strptime(row[1], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             return
@@ -191,7 +191,7 @@ def main():
         pos=0
         while pos < len(data):
             if data[pos]['datum'] == row_date:
-                data[pos]['pocet_AG_testu'] = mk_int(row[2])
+                data[pos]['pocet_AG_testu'] = mk_int(row[3])
                 break
             pos+=1
 
@@ -200,13 +200,13 @@ def main():
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv'
-    expected_header = ['datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
+    expected_header = ['id', 'datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
 
     def callback_hosp_csv(row):
         global lastdate_updated, data
 
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        row_date = datetime.datetime.strptime(row[1], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             return
@@ -214,7 +214,7 @@ def main():
         pos=0
         while pos < len(data) and data[pos]['datum'] <= row_date:
             if data[pos]['datum'] == row_date:
-                data[pos]['hospitalizovani'] = mk_int(row[3])
+                data[pos]['hospitalizovani'] = mk_int(row[4])
                 break
             pos+=1
 
