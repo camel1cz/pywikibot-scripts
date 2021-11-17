@@ -83,7 +83,7 @@ def main():
 
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
-    expected_header = ['datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
+    expected_header = ['id', 'datum', 'vakcina', 'kraj_nuts_kod', 'kraj_nazev', 'vekova_skupina', 'prvnich_davek', 'druhych_davek', 'celkem_davek']
     data['plneockovani'] = 0
     data['castecneockovani'] = 0
     data['vakcin'] = 0
@@ -95,7 +95,7 @@ def main():
         if not row:
             return
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        row_date = datetime.datetime.strptime(row[1], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             return
@@ -103,26 +103,26 @@ def main():
         if row_date > lastdate_updated:
             lastdate_updated = row_date
         # data
-        data['castecneockovani'] += mk_int(row[5])
-        data['plneockovani'] += mk_int(row[6])
-        data['vakcin'] += mk_int(row[7])
+        data['castecneockovani'] += mk_int(row[6])
+        data['plneockovani'] += mk_int(row[7])
+        data['vakcin'] += mk_int(row[8])
 
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_om_csv)
 
     # Get hospitalizovane
     # get data from https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv'
-    expected_header = ['datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
+    expected_header = ['id', 'datum', 'pacient_prvni_zaznam', 'kum_pacient_prvni_zaznam', 'pocet_hosp']
 
     def callback_hosp_csv(row):
         global lastdate_updated, data
 
         # get date
-        row_date = datetime.datetime.strptime(row[0], '%Y-%m-%d')
+        row_date = datetime.datetime.strptime(row[1], '%Y-%m-%d')
         # skip date before start_date
         if row_date < start_date:
             return
-        data['hospitalizovani'] = mk_int(row[3])
+        data['hospitalizovani'] = mk_int(row[4])
 
     processCVSfromURL(url=url, expected_header=expected_header, delimiter=',', callback=callback_hosp_csv)
 
