@@ -185,7 +185,7 @@ def percentDiff(a, b):
         return ' (=)'
 
     diff=100*(b - a)/a
-    sign = '&plus;'
+    sign = '+'
     signFix = 1
     if diff < 0:
       sign = '&minus;'
