@@ -168,9 +168,15 @@ def mk_int(s):
 def template_nts(val):
     t_sep = '&nbsp;'
     d_sep = ','
+    sign = ''
+    signFix = 1
+    if val < 0:
+      sign = '&minus;'
+      signFix = -1
+    val = abs(val)
     if data_sources['expand_templates']:
-        return format(val, ",d").replace(",", t_sep)
-    return ('{{Nts|%d}}') % (val)
+        return sign + format(val, ",d").replace(",", t_sep)
+    return ('{{Nts|%d}}') % (signFix * val)
 
 def percentDiff(a, b):
     if a == 0:
@@ -179,8 +185,14 @@ def percentDiff(a, b):
         return ' (=)'
 
     diff=100*(b - a)/a
-    if abs(diff) < 1:
-        return (' (%+0.2f%%)' % (diff)).replace('.', ',')
-    if abs(diff) < 10:
-        return (' (%+0.1f%%)' % (diff)).replace('.', ',')
-    return (' (%+d%%)' % (diff)).replace('.', ',')
+    sign = ''
+    signFix = 1
+    if diff < 0:
+      sign = '&minus;'
+      signFix = -1
+      diff = abs(diff)
+    if diff < 1:
+        return (' (%s%+0.2f%%)' % (sign, diff)).replace('.', ',')
+    if diff < 10:
+        return (' (%s%+0.1f%%)' % (sign, diff)).replace('.', ',')
+    return (' (%s%+d%%)' % (sign, diff)).replace('.', ',')
