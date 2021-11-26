@@ -185,14 +185,14 @@ def percentDiff(a, b):
         return ' (=)'
 
     diff=100*(b - a)/a
-    sign = ''
+    sign = '&plus;'
     signFix = 1
     if diff < 0:
       sign = '&minus;'
       signFix = -1
       diff = abs(diff)
     if diff < 1:
-        return (' (%s%+0.2f%%)' % (sign, diff)).replace('.', ',')
+        return (' (%s%0.2f%%)' % (sign, diff)).replace('.', ',')
     if diff < 10:
-        return (' (%s%+0.1f%%)' % (sign, diff)).replace('.', ',')
-    return (' (%s%+d%%)' % (sign, diff)).replace('.', ',')
+        return (' (%s%0.1f%%)' % (sign, diff)).replace('.', ',')
+    return (' (%s%d%%)' % (sign, diff)).replace('.', ',')
