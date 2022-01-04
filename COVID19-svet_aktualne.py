@@ -85,6 +85,7 @@ def main():
         data['pocetzemi'] += 1
       # lastdate
       if row_date > lastdate_updated:
+        print(row_date)
         lastdate_updated = row_date
       data['nakazeni'] += mk_int(row[7])
       data['umrti'] += mk_int(row[8])
@@ -143,22 +144,39 @@ def main():
     # finalize data
     data['ockovani'] = data['plneockovani'] + data['castecneockovani']
     data['aktualizovano'] = format_datetime(datetime.datetime.utcnow(), "d. MMMM Y H:mm:ss", tzinfo=get_timezone('Europe/Prague'), locale='cs_CZ')
+    print(lastdate_updated2)
     data['datum'] = format_date(lastdate_updated2, "d. MMMM Y", locale='cs_CZ')
     data['datumpristupu'] = format_date(datetime.datetime.now(), "Y-MM-dd", locale='cs_CZ')
+
+    # rounded data
+    for key in list(data):
+        if type(data[key]) == int or type(data[key]) == float:
+            data['z' + key] = num2text(data[key])
 
     # output data
     output = '''<onlyinclude>{{{{Data pandemie covidu-19/Svět aktuálně/core
  |testovaní = {testovani}
+ |ztestovaní = {ztestovani}
  |nakažení = {nakazeni}
+ |znakažení = {znakazeni}
  |úmrtí = {umrti}
+ |zúmrtí = {zumrti}
  |zotavení = {zotaveni}
+ |zzotavení = {zzotaveni}
  |aktivní případy = {aktivnipripady}
+ |zaktivní případy = {zaktivnipripady}
  |hospitalizovaní = {hospitalizovani}
+ |zhospitalizovaní = {zhospitalizovani}
  |plněočkovaní    = {plneockovani}
+ |zplněočkovaní    = {zplneockovani}
  |částečněočkovaní  = {castecneockovani}
+ |zčástečněočkovaní  = {zcastecneockovani}
  |očkovaní  = {ockovani}
+ |zočkovaní  = {zockovani}
  |vakcín      = {vakcin}
+ |zvakcín      = {zvakcin}
  |počet zemí = {pocetzemi}
+ |zpočet zemí = {zpocetzemi}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
  |typ         = {typ}
