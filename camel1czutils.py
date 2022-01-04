@@ -196,3 +196,12 @@ def percentDiff(a, b):
     if diff < 10:
         return (' (%s%0.1f%%)' % (sign, diff)).replace('.', ',')
     return (' (%s%d%%)' % (sign, diff)).replace('.', ',')
+
+def num2text(n):
+    if n > 1000000000:
+        return ('%0.2f&nbsp;miliard' % (n / 1000000000)).replace('.', ',')
+    if n > 1000000:
+        return ('%0.2f&nbsp;milionů' % (n / 1000000)).replace('.', ',')
+    if n > 1000:
+        return ('%0.2f&nbsp;tisíc' % (n / 1000)).replace('.', ',')
+    return n
