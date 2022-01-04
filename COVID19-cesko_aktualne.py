@@ -135,18 +135,33 @@ def main():
     data['ockovani'] = data['castecneockovani'] + data['plneockovani']
     # počet vakcín je přímo udáván v datové sadě
 
+    # rounded data
+    for key in list(data):
+        if type(data[key]) == int or type(data[key]) == float:
+            data['z' + key] = num2text(data[key])
+
     # output data
     output = '''<onlyinclude>{{{{Data pandemie covidu-19/Česko aktuálně/core
  |testovaní = {testovani}
+ |ztestovaní = {ztestovani}
  |nakažení = {nakazeni}
+ |znakažení = {znakazeni}
  |úmrtí = {umrti}
+ |zúmrtí = {zumrti}
  |zotavení = {zotaveni}
+ |zzotavení = {zzotaveni}
  |aktivní případy = {aktivnipripady}
+ |zaktivní případy = {zaktivnipripady}
  |hospitalizovaní = {hospitalizovani}
+ |zhospitalizovaní = {zhospitalizovani}
  |plněočkovaní    = {plneockovani}
+ |zplněočkovaní    = {zplneockovani}
  |částečněočkovaní  = {castecneockovani}
+ |zčástečněočkovaní  = {zcastecneockovani}
  |vakcín      = {vakcin}
+ |zvakcín      = {zvakcin}
  |očkovaní    = {ockovani}
+ |zočkovaní    = {zockovani}
  |datum       = {datum}
  |aktualizováno = {aktualizovano}
  |typ         = {typ}
