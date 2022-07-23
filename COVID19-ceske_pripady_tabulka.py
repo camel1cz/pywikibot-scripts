@@ -136,7 +136,7 @@ def main():
                 break
             pos+=1
 
-    processCVSfromURL(url=url, expected_header=expected_header, delimiter=';', callback=callback_pes_csv)
+#    processCVSfromURL(url=url, expected_header=expected_header, delimiter=';', callback=callback_pes_csv)
 
     # Get ockovani
     url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani.csv'
